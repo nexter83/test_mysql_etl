@@ -1,0 +1,20 @@
+{
+  "source_mysql_base": {
+    "db_name": "source",
+    "user_name": "mysql",
+    "user_pass": "mysql",
+    "host": "localhost"
+  },
+  "BigData_raw_tmp_mysql_base": {
+    "db_name": "BigData_raw_tmp",
+    "user_name": "mysql",
+    "user_pass": "mysql",
+    "host": "localhost"
+  },
+  "BigData_raw_mysql_base": {
+    "db_name": "BigData_raw",
+    "user_name": "mysql",
+    "user_pass": "mysql",
+    "host": "localhost"
+  }
+}
