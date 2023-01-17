@@ -1,5 +1,6 @@
 from typing import Union
 from sqlalchemy import create_engine, inspect, MetaData, Table
+import time
 
 
 def get_data_from_table(conn, table_name: str, columns: Union[list[str], None] = None) -> list[tuple]:
@@ -48,12 +49,8 @@ def create_table(conn, table_name: str, table_information: list[dict]):
             for row in table_information
         ]
     )
-    sql = f"""
-        create table {table_name} (
-            {columns_data}
-        );
-    """
-    conn.execute(sql)
+    sql = "create table %s (%s);"
+    conn.execute(sql % (table_name, columns_data))
 
 
 def upload_csv_db(conn, csv_data: list[tuple], table_name: str, columns: list[str]):
@@ -69,16 +66,6 @@ def upload_csv_db(conn, csv_data: list[tuple], table_name: str, columns: list[st
     sql = f"INSERT INTO %s(%s) VALUES({','.join(['%%s' for _ in range(len(columns))])})" % (table_name, cols)
     sql = sql.format(table_name)
     conn.execute(sql, csv_data[1:])
-
-
-def drop_table(conn, table_name: str):
-    """
-    Удаляет таблицу в базе
-    :param conn: sqlalchemy подключение
-    :param table_name: имя таблицы в базе
-    :return:
-    """
-    conn.execute(f"drop table if exists {table_name};")
 
 
 def is_table_exists(conn, table_name: str) -> bool:
@@ -152,4 +139,23 @@ def copy_table(conn, table_name: str, source_schema: str):
     :param source_schema: Схема откуда копируем таблицу
     :return:
     """
-    conn.execute(f"create table {table_name} select * from {source_schema}.{table_name}")
+    conn.execute("create table %s select * from %s.%s" % (table_name, source_schema, table_name))
+
+
+def drop_table(conn, table_name: str):
+    """
+    Удаляет таблицу в базе
+    :param conn: sqlalchemy подключение
+    :param table_name: имя таблицы в базе
+    :return:
+    """
+    conn.execute("drop table if exists %s;" % table_name)
+
+
+def move_table(conn, table_name: str, source_schema: str):
+    conn.execution_options(isolation_level="SERIALIZABLE")
+    with conn.begin():
+        if is_table_exists(conn, table_name):
+            drop_table(conn, table_name)
+        # time.sleep(15)
+        copy_table(conn, table_name, source_schema)

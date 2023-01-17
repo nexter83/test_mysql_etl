@@ -4,7 +4,6 @@ from lib.utils import make_config, transliterate_string, remove_file
 import lib.db as db
 from datetime import date
 
-
 if __name__ == "__main__":
     config = make_config("config.json")
 
@@ -35,8 +34,7 @@ if __name__ == "__main__":
         if source_count_rows == target_count_rows:
             remove_file(file_name)
             with closing(db.get_conn(config, "BigData_raw_mysql_base")) as conn:
-                if db.is_table_exists(conn, new_table_name):
-                    db.drop_table(conn, new_table_name)
-                db.copy_table(conn, new_table_name, "BigData_raw_tmp")
+                db.move_table(conn, new_table_name, "BigData_raw_tmp")
+
         else:
             print(f"Количество строк в исходной {table_name} и целевой {new_table_name} таблицах - не совпадают")
